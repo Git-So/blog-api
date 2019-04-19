@@ -1,3 +1,4 @@
+vendor
 .blog/conf.yaml
 .blog/templates
 release

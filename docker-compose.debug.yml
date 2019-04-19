@@ -1,0 +1,10 @@
+version: '2.1'
+
+services:
+  blog-api:
+    image: blog-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+        - 8099:8099

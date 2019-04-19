@@ -1,0 +1,4 @@
+.blog/conf.yaml
+.blog/templates
+release
+test.db

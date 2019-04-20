@@ -10,13 +10,14 @@
 package models
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/Git-So/blog-api/utils/conf"
 	"github.com/jinzhu/gorm"
 
-	// _ "github.com/jinzhu/gorm/dialects/mysql" // mysql
-	_ "github.com/jinzhu/gorm/dialects/sqlite" // sqlite3
+	_ "github.com/jinzhu/gorm/dialects/mysql" // mysql
+	// _ "github.com/jinzhu/gorm/dialects/sqlite" // sqlite3
 )
 
 var db *gorm.DB
@@ -33,7 +34,7 @@ func new() {
 	config := conf.Get()
 
 	var err error
-	db, err = gorm.Open("sqlite3", "test.db")
+	db, err = gorm.Open(conf.Get().Database.Type, getSource())
 	if err != nil {
 		log.Fatalf("DB err: %v", err)
 	}
@@ -48,6 +49,30 @@ func new() {
 	db.AutoMigrate(&Article{}, &Comment{}, &Config{}, &Link{}, &Subject{}, &TagMap{}, &Tag{})
 
 	return
+}
+
+// getSource
+// 其实我测试用的时候都用 sqlit3 方便
+func getSource() (source string) {
+	switch conf.Get().Database.Type {
+	case "mmsql":
+		// 没有写
+		return
+	case "mysql":
+		return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local",
+			conf.Get().Database.User,
+			conf.Get().Database.Passwd,
+			conf.Get().Database.Host,
+			conf.Get().Database.Port,
+			conf.Get().Database.Name)
+	case "postgres":
+		// 没有写
+		return
+	case "sqlite3":
+		return fmt.Sprintf("%s.db", conf.Get().Database.Name)
+	default:
+		return
+	}
 }
 
 // 表名处理

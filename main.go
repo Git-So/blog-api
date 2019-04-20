@@ -18,6 +18,7 @@ import (
 	"github.com/Git-So/blog-api/routers"
 	"github.com/Git-So/blog-api/utils/cache"
 	"github.com/Git-So/blog-api/utils/conf"
+	"github.com/Git-So/blog-api/utils/helper"
 
 	"github.com/facebookgo/grace/gracehttp"
 	"github.com/wonderivan/logger"
@@ -25,7 +26,10 @@ import (
 
 func main() {
 	// log
-	logger.SetLogger(".blog/log.json")
+	logPath := ".blog/log.json"
+	helper.CreatePath("", logPath)
+	helper.WriteFile(logPath, "{}")
+	logger.SetLogger(logPath)
 
 	// config
 	confing := conf.Get()

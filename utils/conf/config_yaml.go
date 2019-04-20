@@ -36,7 +36,7 @@ server:
 
 #数据库配置
 database:
-  type: sqlite3 # mysql sqlite3
+  type: mysql # mysql sqlite3
   host: 127.0.0.1
   port: 3306
   user: root

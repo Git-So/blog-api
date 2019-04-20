@@ -2,4 +2,5 @@ vendor
 .blog/conf.yaml
 .blog/templates
 release
+app
 test.db

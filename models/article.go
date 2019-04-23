@@ -21,7 +21,7 @@ type Article struct {
 	ID          uint
 	Title       string     `gorm:"not null"`
 	Description string     `gorm:"not null" json:"Description,omitempty"`
-	Markdown    string     `gorm:"type:text;not null" json:"Markdown,omitempty"`
+	Markdown    string     `gorm:"type:text;not null" json:"Markdown"`
 	Content     string     `gorm:"type:text;not null" json:"Content,omitempty"`
 	SubjectID   uint       `gorm:"default:0;index:article2subject" json:"SubjectID,omitempty"`
 	ViewNum     uint       `gorm:"default:0;not null"`

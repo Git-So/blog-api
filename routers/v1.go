@@ -65,6 +65,7 @@ func v1router(r *gin.Engine) {
 		subject.Use(apicache.Cache()) // api 处缓存
 		{
 			subject.GET("list/:PageNum", v1.SubjectList)
+			subject.GET("info/:ID", v1.SubjectInfo)
 		}
 
 		// 友链

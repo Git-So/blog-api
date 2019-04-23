@@ -11,6 +11,7 @@ package msg
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -114,16 +115,18 @@ func (we *wechat) Send(message string) (stat bool) {
 	uri := `https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=` + token
 	req, err := http.NewRequest("POST", uri, bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
+	client := &http.Client{Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}}
 	resp, err := client.Do(req)
 	if err != nil {
-		logger.Error("请求发送模板消息出错")
+		logger.Error("请求发送模板消息出错", err)
 		return
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		logger.Error("获取 body 数据失败")
+		logger.Error("获取 body 数据失败", err)
 		return
 	}
 
@@ -131,7 +134,7 @@ func (we *wechat) Send(message string) (stat bool) {
 	logger.Debug("解析数据")
 	var response TemplateResponse
 	if err = json.Unmarshal(body, &response); err != nil {
-		logger.Error("response数据错误")
+		logger.Error("response数据错误", err)
 		return
 	}
 	logger.Debug("判断数据")
@@ -155,7 +158,10 @@ func (we *wechat) getAccessToken() (stat bool) {
 	)
 	logger.Debug("发送微信模板消息")
 	// 请求
-	resp, err := http.Get(uri)
+	client := &http.Client{Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}}
+	resp, err := client.Get(uri)
 	if err != nil {
 		logger.Error("获取AccessToken出错")
 		return

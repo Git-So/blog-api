@@ -17,6 +17,7 @@ import (
 	"github.com/Git-So/blog-api/utils/cache"
 	"github.com/Git-So/blog-api/utils/conf"
 	"github.com/Git-So/blog-api/utils/helper"
+	"github.com/jinzhu/gorm"
 	"github.com/wonderivan/logger"
 )
 
@@ -128,4 +129,41 @@ func GetSubjectList(pageNum, pageSize uint, where []interface{}) (subjectList []
 	cache.Get().SetEx(key, conf.Get().Cache.Expired, helper.Enbase64(dataString))
 
 	return
+}
+
+// GetSubjectInfoByID 通过文章序号获取专题信息
+func GetSubjectInfoByID(id uint, isAdmin bool) (*models.Subject, error) {
+	var cacheSubjectnfo models.Subject
+	key := cache.GetKey(`GetSubjectInfoByID`, id)
+
+	// 获取缓存
+	data, stat, err := cache.GetCacheData(key)
+	if err == nil && stat {
+		// 数据解析
+		jsonData, err := helper.Debase64(data)
+		if err == nil {
+			json.Unmarshal(jsonData, &cacheSubjectnfo)
+			if cacheSubjectnfo.State != 1 {
+				return nil, gorm.ErrRecordNotFound
+			}
+			return &cacheSubjectnfo, nil
+		}
+		logger.Warn("缓存数据有误,无法解析：", key, data)
+	}
+
+	// 查询数据
+	cacheSubjectnfo.ID = id
+	err = cacheSubjectnfo.Info(isAdmin)
+	if isErrDB(err) {
+		return nil, err
+	}
+
+	// 保存缓存
+	dataString, err := json.Marshal(&cacheSubjectnfo)
+	if err != nil {
+		return nil, err
+	}
+	cache.Get().SetEx(key, conf.Get().Cache.Expired, helper.Enbase64(dataString))
+
+	return &cacheSubjectnfo, nil
 }

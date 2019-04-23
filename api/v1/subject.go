@@ -20,6 +20,7 @@ import (
 	"github.com/Git-So/blog-api/utils/e"
 	"github.com/gin-gonic/gin"
 	"github.com/gookit/validate"
+	"github.com/wonderivan/logger"
 )
 
 // Subject 接口提交数据
@@ -53,6 +54,9 @@ func (subject Subject) ConfigValidation(v *validate.Validation) {
 	v.WithScenes(validate.SValues{
 		"SubjectList": []string{
 			"PageNum",
+		},
+		"SubjectInfo": []string{
+			"ID",
 		},
 		"CreateSubject": []string{
 			"Title",
@@ -222,6 +226,43 @@ func SubjectList(c *gin.Context) {
 		"pageNum":     request.PageNum,
 		"subjectList": &subjectList,
 		"search":      request.Search,
+	}
+	api.Succ().SetData(&response).Output(c)
+	return
+}
+
+// SubjectInfo 专题详情
+func SubjectInfo(c *gin.Context) {
+	// request
+	data := fmt.Sprintf(`{"ID":%s}`, c.Param("ID"))
+	var request Article
+	if err := json.Unmarshal([]byte(data), &request); err != nil {
+		logger.Warn(err)
+		api.ErrValidate().Output(c)
+		return
+	}
+
+	// 验证
+	v := validate.Struct(request, "SubjectInfo")
+	if !v.Validate() {
+		api.ErrValidate(v.Errors.One()).Output(c)
+		return
+	}
+
+	// response
+	subjectInfo, err := service.GetSubjectInfoByID(request.ID, isAdmin(c))
+	isNotFound, isErr := api.IsServiceError(c, err)
+	if isErr {
+		return
+	}
+	if isNotFound {
+		api.New(e.ErrNotFoundData).Output(c)
+		return
+	}
+
+	// response
+	response := map[string]interface{}{
+		"subjectInfo": subjectInfo,
 	}
 	api.Succ().SetData(&response).Output(c)
 	return

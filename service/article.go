@@ -25,7 +25,7 @@ import (
 // GetArticleInfoByID 通过文章序号获取文章信息
 func (s *Service) GetArticleInfoByID(id uint, isAdmin bool) (*models.Article, error) {
 	var cacheArticleInfo models.Article
-	key := cache.GetKey(`GetArticleInfoByID`, id)
+	key := cache.GetKey(`GetArticleInfoByID`, id, isAdmin)
 
 	// 获取缓存
 	if s.IsCache {
@@ -35,7 +35,7 @@ func (s *Service) GetArticleInfoByID(id uint, isAdmin bool) (*models.Article, er
 			jsonData, err := helper.Debase64(data)
 			if err == nil {
 				json.Unmarshal(jsonData, &cacheArticleInfo)
-				if cacheArticleInfo.State != 1 {
+				if cacheArticleInfo.State != 1 && !isAdmin {
 					return nil, gorm.ErrRecordNotFound
 				}
 				return &cacheArticleInfo, nil
@@ -63,7 +63,7 @@ func (s *Service) GetArticleInfoByID(id uint, isAdmin bool) (*models.Article, er
 
 // GetHotArticleList 获取热门文章列表
 func (s *Service) GetHotArticleList(isAdmin bool, pageNum, pageSize uint) (articleList []*models.Article, err error) {
-	key := cache.GetKey(`GetHotArticleList`, pageNum, pageSize)
+	key := cache.GetKey(`GetHotArticleList`, pageNum, pageSize, isAdmin)
 
 	// 获取缓存
 	if s.IsCache {
@@ -117,7 +117,7 @@ func (s *Service) DeleteArticle(id uint) (err error) {
 // ArticleTotal .
 func (s *Service) ArticleTotal(isAdmin bool, where []interface{}) (count uint, err error) {
 	var cacheArticleInfo models.Article
-	key := cache.GetKey(`ArticleTotal`, where)
+	key := cache.GetKey(`ArticleTotal`, where, isAdmin)
 
 	// 获取缓存
 	if s.IsCache {
@@ -180,7 +180,7 @@ func (s *Service) CreateArticle(article *models.Article, tag []string, subjectID
 // GetArticleList .
 func (s *Service) GetArticleList(isAdmin bool, pageNum, pageSize uint, field []interface{}, order string, where []interface{}) (articleList []*models.Article, err error) {
 	group := cache.GetKey("")
-	key := cache.GetKey(append(where, `GetArticleList`, pageNum, pageSize)...)
+	key := cache.GetKey(append(where, `GetArticleList`, pageNum, pageSize, isAdmin)...)
 
 	// 获取缓存
 	if s.IsCache {

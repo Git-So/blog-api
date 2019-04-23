@@ -138,7 +138,7 @@ func (s *Service) GetSubjectList(pageNum, pageSize uint, where []interface{}) (s
 // GetSubjectInfoByID 通过文章序号获取专题信息
 func (s *Service) GetSubjectInfoByID(id uint, isAdmin bool) (*models.Subject, error) {
 	var cacheSubjectnfo models.Subject
-	key := cache.GetKey(`GetSubjectInfoByID`, id)
+	key := cache.GetKey(`GetSubjectInfoByID`, id, isAdmin)
 
 	// 获取缓存
 	if s.IsCache {

@@ -88,7 +88,7 @@ func CreateSubject(c *gin.Context) {
 	}
 
 	// 专题是否存在
-	stat, err := service.IsExistsSubjectByTitle(request.Title)
+	stat, err := service.New(c).IsExistsSubjectByTitle(request.Title)
 	if _, isErr := api.IsServiceError(c, err); isErr {
 		return
 	}
@@ -101,7 +101,7 @@ func CreateSubject(c *gin.Context) {
 	subject := &models.Subject{
 		Title: request.Title,
 	}
-	err = service.CreateSubject(subject)
+	err = service.New(c).CreateSubject(subject)
 	if isErr, _ := api.IsServiceError(c, err); isErr {
 		return
 	}
@@ -128,7 +128,7 @@ func UpdateSubject(c *gin.Context) {
 
 	// 专题是否存在
 	if request.ID > 0 {
-		stat, err := service.IsExistsSubjectByID(request.ID)
+		stat, err := service.New(c).IsExistsSubjectByID(request.ID)
 		if _, isErr := api.IsServiceError(c, err); isErr {
 			return
 		}
@@ -144,7 +144,7 @@ func UpdateSubject(c *gin.Context) {
 		Title: request.Title,
 		State: request.State,
 	}
-	err := service.UpdateSubject(subject)
+	err := service.New(c).UpdateSubject(subject)
 	if isErr, _ := api.IsServiceError(c, err); isErr {
 		return
 	}
@@ -170,7 +170,7 @@ func DeleteSubject(c *gin.Context) {
 	}
 
 	// do
-	err := service.DeleteSubject(request.ID)
+	err := service.New(c).DeleteSubject(request.ID)
 	if _, isErr := api.IsServiceError(c, err); isErr {
 		return
 	}
@@ -210,14 +210,14 @@ func SubjectList(c *gin.Context) {
 		whereVal = append(whereVal, "%"+request.Search+"%")
 	}
 	where := append([]interface{}{whereKey}, whereVal...)
-	count, err := service.SubjectTotal(where)
+	count, err := service.New(c).SubjectTotal(where)
 	if _, isErr := api.IsServiceError(c, err); isErr {
 		return
 	}
 	var subjectList []*models.Subject
 	pageSize := conf.Get().Page.Subject
 	if count > 0 {
-		subjectList, err = service.GetSubjectList(request.PageNum, pageSize, where)
+		subjectList, err = service.New(c).GetSubjectList(request.PageNum, pageSize, where)
 	}
 
 	response := map[string]interface{}{
@@ -250,7 +250,7 @@ func SubjectInfo(c *gin.Context) {
 	}
 
 	// response
-	subjectInfo, err := service.GetSubjectInfoByID(request.ID, isAdmin(c))
+	subjectInfo, err := service.New(c).GetSubjectInfoByID(request.ID, isAdmin(c))
 	isNotFound, isErr := api.IsServiceError(c, err)
 	if isErr {
 		return

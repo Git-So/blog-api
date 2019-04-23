@@ -21,19 +21,21 @@ import (
 )
 
 // TagTotal .
-func TagTotal(where []interface{}) (count uint, err error) {
+func (s *Service) TagTotal(where []interface{}) (count uint, err error) {
 	var cacheTagInfo models.Tag
 	key := cache.GetKey(append(where, `TagTotal`)...)
 
 	// 获取缓存
-	data, stat, err := cache.GetCacheData(key)
-	if err == nil && stat {
-		// 数据解析
-		count, err := strconv.Atoi(data)
-		if err == nil {
-			return uint(count), nil
+	if s.IsCache {
+		data, stat, err := cache.GetCacheData(key)
+		if err == nil && stat {
+			// 数据解析
+			count, err := strconv.Atoi(data)
+			if err == nil {
+				return uint(count), nil
+			}
+			logger.Warn("缓存数据有误,无法解析：", key, data)
 		}
-		logger.Warn("缓存数据有误,无法解析：", key, data)
 	}
 
 	// 查询数据
@@ -51,9 +53,9 @@ func TagTotal(where []interface{}) (count uint, err error) {
 }
 
 // isExistsTag 是否存在标签
-func isExistsTag(where []interface{}) (IsExists bool, err error) {
+func (s *Service) isExistsTag(where []interface{}) (IsExists bool, err error) {
 	var count uint
-	count, err = TagTotal(where)
+	count, err = s.TagTotal(where)
 
 	if count > 0 {
 		IsExists = true
@@ -62,17 +64,17 @@ func isExistsTag(where []interface{}) (IsExists bool, err error) {
 }
 
 // IsExistsTagByName .
-func IsExistsTagByName(name string) (IsExists bool, err error) {
-	return isExistsTag([]interface{}{"name = ?", name})
+func (s *Service) IsExistsTagByName(name string) (IsExists bool, err error) {
+	return s.isExistsTag([]interface{}{"name = ?", name})
 }
 
 // CreateTag .
-func CreateTag(tag *models.Tag) (err error) {
+func (s *Service) CreateTag(tag *models.Tag) (err error) {
 	return tag.Create()
 }
 
 // DeleteTag 删除标签
-func DeleteTag(id uint) (err error) {
+func (s *Service) DeleteTag(id uint) (err error) {
 	var tag models.Tag
 
 	// 删除标签
@@ -86,7 +88,7 @@ func DeleteTag(id uint) (err error) {
 }
 
 // DeleteTagByName 使用标签名删除标签
-func DeleteTagByName(name string) (err error) {
+func (s *Service) DeleteTagByName(name string) (err error) {
 	var tag models.Tag
 
 	// 删除标签
@@ -100,19 +102,21 @@ func DeleteTagByName(name string) (err error) {
 }
 
 // GetTagList .
-func GetTagList(pageNum, pageSize uint, where []interface{}) (tagList []*models.Tag, err error) {
+func (s *Service) GetTagList(pageNum, pageSize uint, where []interface{}) (tagList []*models.Tag, err error) {
 	key := cache.GetKey(append(where, `GetTagList`, pageNum, pageSize)...)
 
 	// 获取缓存
-	data, stat, err := cache.GetCacheData(key)
-	if err == nil && stat {
-		// 数据解析
-		jsonData, err := helper.Debase64(data)
-		if err == nil {
-			json.Unmarshal(jsonData, &tagList)
-			return tagList, nil
+	if s.IsCache {
+		data, stat, err := cache.GetCacheData(key)
+		if err == nil && stat {
+			// 数据解析
+			jsonData, err := helper.Debase64(data)
+			if err == nil {
+				json.Unmarshal(jsonData, &tagList)
+				return tagList, nil
+			}
+			logger.Warn("缓存数据有误,无法解析：", key, data)
 		}
-		logger.Warn("缓存数据有误,无法解析：", key, data)
 	}
 
 	// 查询数据

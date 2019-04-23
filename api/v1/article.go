@@ -110,7 +110,7 @@ func ArticleInfo(c *gin.Context) {
 	}
 
 	// response
-	articleInfo, err := service.GetArticleInfoByID(request.ID, isAdmin(c))
+	articleInfo, err := service.New(c).GetArticleInfoByID(request.ID, isAdmin(c))
 	isNotFound, isErr := api.IsServiceError(c, err)
 	if isErr {
 		return
@@ -171,7 +171,7 @@ func ArticleList(c *gin.Context) {
 		whereVal = append(whereVal, "%"+request.Search+"%")
 	}
 	where := append([]interface{}{whereKey}, whereVal...)
-	count, err := service.ArticleTotal(isAdmin(c), where)
+	count, err := service.New(c).ArticleTotal(isAdmin(c), where)
 	if _, isErr := api.IsServiceError(c, err); isErr {
 		return
 	}
@@ -180,7 +180,7 @@ func ArticleList(c *gin.Context) {
 	if count > 0 {
 		field := []interface{}{"id,title,description,created_at,view_num,comment_num"}
 		order := "id desc"
-		articleList, err = service.GetArticleList(isAdmin(c), request.PageNum, pageSize, field, order, where)
+		articleList, err = service.New(c).GetArticleList(isAdmin(c), request.PageNum, pageSize, field, order, where)
 	}
 
 	response := map[string]interface{}{
@@ -212,7 +212,7 @@ func CreateArticle(c *gin.Context) {
 	}
 
 	// 文章是否存在
-	stat, err := service.IsExistsArticleByTitle(isAdmin(c), request.Title)
+	stat, err := service.New(c).IsExistsArticleByTitle(isAdmin(c), request.Title)
 	if _, isErr := api.IsServiceError(c, err); isErr {
 		return
 	}
@@ -224,7 +224,7 @@ func CreateArticle(c *gin.Context) {
 	// 专题是否存在
 	logger.Debug(request.SubjectID)
 	if request.SubjectID > 0 {
-		stat, err = service.IsExistsSubjectByID(request.SubjectID)
+		stat, err = service.New(c).IsExistsSubjectByID(request.SubjectID)
 		if _, isErr := api.IsServiceError(c, err); isErr {
 			return
 		}
@@ -242,7 +242,7 @@ func CreateArticle(c *gin.Context) {
 		Content:     request.Content,
 		SubjectID:   request.SubjectID,
 	}
-	err = service.CreateArticle(article, request.Tags, request.SubjectID)
+	err = service.New(c).CreateArticle(article, request.Tags, request.SubjectID)
 	if isErr, _ := api.IsServiceError(c, err); isErr {
 		return
 	}
@@ -268,7 +268,7 @@ func UpdateArticle(c *gin.Context) {
 	}
 
 	// 文章是否存在
-	stat, err := service.IsExistsArticleByID(isAdmin(c), request.ID)
+	stat, err := service.New(c).IsExistsArticleByID(isAdmin(c), request.ID)
 
 	if _, isErr := api.IsServiceError(c, err); isErr {
 		return
@@ -280,7 +280,7 @@ func UpdateArticle(c *gin.Context) {
 
 	// 专题是否存在
 	if request.SubjectID > 0 {
-		stat, err = service.IsExistsSubjectByID(request.ID)
+		stat, err = service.New(c).IsExistsSubjectByID(request.ID)
 		if _, isErr := api.IsServiceError(c, err); isErr {
 			return
 		}
@@ -299,7 +299,7 @@ func UpdateArticle(c *gin.Context) {
 		SubjectID:   request.SubjectID,
 		State:       request.State,
 	}
-	err = service.UpdateArticle(article, request.Tags, request.SubjectID)
+	err = service.New(c).UpdateArticle(article, request.Tags, request.SubjectID)
 	if isErr, _ := api.IsServiceError(c, err); isErr {
 		return
 	}
@@ -325,7 +325,7 @@ func DeleteArticle(c *gin.Context) {
 	}
 
 	// do
-	err := service.DeleteArticle(request.ID)
+	err := service.New(c).DeleteArticle(request.ID)
 	if _, isErr := api.IsServiceError(c, err); isErr {
 		return
 	}
@@ -352,7 +352,7 @@ func HotArticleList(c *gin.Context) {
 	}
 
 	// response
-	articleList, err := service.GetHotArticleList(isAdmin(c), request.PageNum, conf.Get().Page.HotArticle)
+	articleList, err := service.New(c).GetHotArticleList(isAdmin(c), request.PageNum, conf.Get().Page.HotArticle)
 	isNotFound, isErr := api.IsServiceError(c, err)
 	if isErr {
 		return

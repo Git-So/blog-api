@@ -21,19 +21,21 @@ import (
 )
 
 // LinkTotal .
-func LinkTotal(where []interface{}) (count uint, err error) {
+func (s *Service) LinkTotal(where []interface{}) (count uint, err error) {
 	var cacheLink models.Link
 	key := cache.GetKey(append(where, "LinkTotal")...)
 
 	// 获取缓存
-	data, stat, err := cache.GetCacheData(key)
-	if err == nil && stat {
-		// 数据解析
-		count, err := strconv.Atoi(data)
-		if err == nil {
-			return uint(count), nil
+	if s.IsCache {
+		data, stat, err := cache.GetCacheData(key)
+		if err == nil && stat {
+			// 数据解析
+			count, err := strconv.Atoi(data)
+			if err == nil {
+				return uint(count), nil
+			}
+			logger.Warn("缓存数据有误,无法解析：", key, data)
 		}
-		logger.Warn("缓存数据有误,无法解析：", key, data)
 	}
 
 	// 查询数据
@@ -51,9 +53,9 @@ func LinkTotal(where []interface{}) (count uint, err error) {
 }
 
 // isExistsLink 是否存在友链
-func isExistsLink(where ...interface{}) (IsExists bool, err error) {
+func (s *Service) isExistsLink(where ...interface{}) (IsExists bool, err error) {
 	var count uint
-	count, err = LinkTotal(where)
+	count, err = s.LinkTotal(where)
 
 	if count > 0 {
 		IsExists = true
@@ -62,27 +64,27 @@ func isExistsLink(where ...interface{}) (IsExists bool, err error) {
 }
 
 // IsExistsLinkByURI 。
-func IsExistsLinkByURI(uri string) (IsExists bool, err error) {
-	return isExistsLink("uri = ?", uri)
+func (s *Service) IsExistsLinkByURI(uri string) (IsExists bool, err error) {
+	return s.isExistsLink("uri = ?", uri)
 }
 
 // IsExistsLinkByID 。
-func IsExistsLinkByID(id uint) (IsExists bool, err error) {
-	return isExistsLink("id = ?", id)
+func (s *Service) IsExistsLinkByID(id uint) (IsExists bool, err error) {
+	return s.isExistsLink("id = ?", id)
 }
 
 // CreateLink .
-func CreateLink(link *models.Link) (err error) {
+func (s *Service) CreateLink(link *models.Link) (err error) {
 	return link.Create()
 }
 
 // UpdateLink 。
-func UpdateLink(link *models.Link) (err error) {
+func (s *Service) UpdateLink(link *models.Link) (err error) {
 	return link.Update()
 }
 
 // DeleteLink .
-func DeleteLink(id uint) (err error) {
+func (s *Service) DeleteLink(id uint) (err error) {
 	var link models.Link
 
 	link.ID = id
@@ -95,19 +97,21 @@ func DeleteLink(id uint) (err error) {
 }
 
 // GetLinkList .
-func GetLinkList(pageNum, pageSize uint) (linkList []*models.Link, err error) {
+func (s *Service) GetLinkList(pageNum, pageSize uint) (linkList []*models.Link, err error) {
 	key := cache.GetKey(`GetLinkList`, pageNum, pageSize)
 
 	// 获取缓存
-	data, stat, err := cache.GetCacheData(key)
-	if err == nil && stat {
-		// 数据解析
-		jsonData, err := helper.Debase64(data)
-		if err == nil {
-			json.Unmarshal(jsonData, &linkList)
-			return linkList, nil
+	if s.IsCache {
+		data, stat, err := cache.GetCacheData(key)
+		if err == nil && stat {
+			// 数据解析
+			jsonData, err := helper.Debase64(data)
+			if err == nil {
+				json.Unmarshal(jsonData, &linkList)
+				return linkList, nil
+			}
+			logger.Warn("缓存数据有误,无法解析：", key, data)
 		}
-		logger.Warn("缓存数据有误,无法解析：", key, data)
 	}
 
 	// 查询数据

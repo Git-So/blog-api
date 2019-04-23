@@ -14,7 +14,7 @@ import (
 )
 
 // CommentTotal .
-func CommentTotal(isAdmin bool, where []interface{}) (count uint, err error) {
+func (s *Service) CommentTotal(isAdmin bool, where []interface{}) (count uint, err error) {
 	var comment models.Comment
 
 	// 查询数据
@@ -27,9 +27,9 @@ func CommentTotal(isAdmin bool, where []interface{}) (count uint, err error) {
 }
 
 // isExistsComment 是否存在评论
-func isExistsComment(isAdmin bool, where ...interface{}) (IsExists bool, err error) {
+func (s *Service) isExistsComment(isAdmin bool, where ...interface{}) (IsExists bool, err error) {
 	var count uint
-	count, err = CommentTotal(isAdmin, where)
+	count, err = s.CommentTotal(isAdmin, where)
 
 	if count > 0 {
 		IsExists = true
@@ -38,22 +38,22 @@ func isExistsComment(isAdmin bool, where ...interface{}) (IsExists bool, err err
 }
 
 // IsExistsCommentByID 。
-func IsExistsCommentByID(isAdmin bool, id uint) (IsExists bool, err error) {
-	return isExistsComment(isAdmin, "id = ?", id)
+func (s *Service) IsExistsCommentByID(isAdmin bool, id uint) (IsExists bool, err error) {
+	return s.isExistsComment(isAdmin, "id = ?", id)
 }
 
 // CreateComment .
-func CreateComment(comment *models.Comment) (err error) {
+func (s *Service) CreateComment(comment *models.Comment) (err error) {
 	return comment.Create()
 }
 
 // UpdateComment 。
-func UpdateComment(comment *models.Comment) (err error) {
+func (s *Service) UpdateComment(comment *models.Comment) (err error) {
 	return comment.Update()
 }
 
 // DeleteComment .
-func DeleteComment(id uint) (err error) {
+func (s *Service) DeleteComment(id uint) (err error) {
 	var comment models.Comment
 
 	comment.ID = id
@@ -66,7 +66,7 @@ func DeleteComment(id uint) (err error) {
 }
 
 // GetCommentList .
-func GetCommentList(isAdmin bool, pageNum, pageSize uint, where []interface{}) (commentList []*models.Comment, err error) {
+func (s *Service) GetCommentList(isAdmin bool, pageNum, pageSize uint, where []interface{}) (commentList []*models.Comment, err error) {
 
 	// 查询数据
 	var cacheComment models.Comment

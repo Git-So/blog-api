@@ -20,7 +20,7 @@ import (
 // MeInfo .
 func MeInfo(c *gin.Context) {
 	var configList []*models.Config
-	configList, err := service.GetConfigList(isAdmin(c), []interface{}{})
+	configList, err := service.New(c).GetConfigList(isAdmin(c), []interface{}{})
 	isNotFound, isErr := api.IsServiceError(c, err)
 	if isErr {
 		return
@@ -54,7 +54,7 @@ func UpdateConfig(c *gin.Context) {
 		}
 	}
 
-	err := service.ConfigUpdateAll(request)
+	err := service.New(c).ConfigUpdateAll(request)
 	if _, isErr := api.IsServiceError(c, err); isErr {
 		return
 	}

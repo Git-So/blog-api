@@ -19,19 +19,21 @@ import (
 )
 
 // TagMapTotal .
-func TagMapTotal(where []interface{}) (count uint, err error) {
+func (s *Service) TagMapTotal(where []interface{}) (count uint, err error) {
 	var cacheTagMapInfo models.TagMap
 	key := cache.GetKey(append(where, `TagMapTotal`)...)
 
 	// 获取缓存
-	data, stat, err := cache.GetCacheData(key)
-	if err == nil && stat {
-		// 数据解析
-		count, err := strconv.Atoi(data)
-		if err == nil {
-			return uint(count), nil
+	if s.IsCache {
+		data, stat, err := cache.GetCacheData(key)
+		if err == nil && stat {
+			// 数据解析
+			count, err := strconv.Atoi(data)
+			if err == nil {
+				return uint(count), nil
+			}
+			logger.Warn("缓存数据有误,无法解析：", key, data)
 		}
-		logger.Warn("缓存数据有误,无法解析：", key, data)
 	}
 
 	// 查询数据
@@ -49,9 +51,9 @@ func TagMapTotal(where []interface{}) (count uint, err error) {
 }
 
 // isExistsTag 是否存在标签文章映射
-func isExistsTagMap(where []interface{}) (IsExists bool, err error) {
+func (s *Service) isExistsTagMap(where []interface{}) (IsExists bool, err error) {
 	var count uint
-	count, err = TagMapTotal(where)
+	count, err = s.TagMapTotal(where)
 
 	if count > 0 {
 		IsExists = true
@@ -60,7 +62,7 @@ func isExistsTagMap(where []interface{}) (IsExists bool, err error) {
 }
 
 // IsExistsTagByTagName .
-func IsExistsTagByTagName(name string) (IsExists bool, err error) {
+func (s *Service) IsExistsTagByTagName(name string) (IsExists bool, err error) {
 	tag := models.Tag{
 		Name: name,
 	}
@@ -68,5 +70,5 @@ func IsExistsTagByTagName(name string) (IsExists bool, err error) {
 	if isErrDB(err) {
 		return
 	}
-	return isExistsTagMap([]interface{}{"tag_id = ?", tag.ID})
+	return s.isExistsTagMap([]interface{}{"tag_id = ?", tag.ID})
 }

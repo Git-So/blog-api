@@ -23,28 +23,30 @@ import (
 )
 
 // GetArticleInfoByID 通过文章序号获取文章信息
-func GetArticleInfoByID(id uint, isAdmin bool) (*models.Article, error) {
+func (s *Service) GetArticleInfoByID(id uint, isAdmin bool) (*models.Article, error) {
 	var cacheArticleInfo models.Article
 	key := cache.GetKey(`GetArticleInfoByID`, id)
 
 	// 获取缓存
-	data, stat, err := cache.GetCacheData(key)
-	if err == nil && stat {
-		// 数据解析
-		jsonData, err := helper.Debase64(data)
-		if err == nil {
-			json.Unmarshal(jsonData, &cacheArticleInfo)
-			if cacheArticleInfo.State != 1 {
-				return nil, gorm.ErrRecordNotFound
+	if s.IsCache {
+		data, stat, err := cache.GetCacheData(key)
+		if err == nil && stat {
+			// 数据解析
+			jsonData, err := helper.Debase64(data)
+			if err == nil {
+				json.Unmarshal(jsonData, &cacheArticleInfo)
+				if cacheArticleInfo.State != 1 {
+					return nil, gorm.ErrRecordNotFound
+				}
+				return &cacheArticleInfo, nil
 			}
-			return &cacheArticleInfo, nil
+			logger.Warn("缓存数据有误,无法解析：", key, data)
 		}
-		logger.Warn("缓存数据有误,无法解析：", key, data)
 	}
 
 	// 查询数据
 	cacheArticleInfo.ID = id
-	err = cacheArticleInfo.Info(isAdmin)
+	err := cacheArticleInfo.Info(isAdmin)
 	if isErrDB(err) {
 		return nil, err
 	}
@@ -60,19 +62,21 @@ func GetArticleInfoByID(id uint, isAdmin bool) (*models.Article, error) {
 }
 
 // GetHotArticleList 获取热门文章列表
-func GetHotArticleList(isAdmin bool, pageNum, pageSize uint) (articleList []*models.Article, err error) {
+func (s *Service) GetHotArticleList(isAdmin bool, pageNum, pageSize uint) (articleList []*models.Article, err error) {
 	key := cache.GetKey(`GetHotArticleList`, pageNum, pageSize)
 
 	// 获取缓存
-	data, stat, err := cache.GetCacheData(key)
-	if err == nil && stat {
-		// 数据解析
-		jsonData, err := helper.Debase64(data)
-		if err == nil {
-			json.Unmarshal(jsonData, &articleList)
-			return articleList, nil
+	if s.IsCache {
+		data, stat, err := cache.GetCacheData(key)
+		if err == nil && stat {
+			// 数据解析
+			jsonData, err := helper.Debase64(data)
+			if err == nil {
+				json.Unmarshal(jsonData, &articleList)
+				return articleList, nil
+			}
+			logger.Warn("缓存数据有误,无法解析：", key, data)
 		}
-		logger.Warn("缓存数据有误,无法解析：", key, data)
 	}
 
 	// 查询数据
@@ -93,7 +97,7 @@ func GetHotArticleList(isAdmin bool, pageNum, pageSize uint) (articleList []*mod
 }
 
 // DeleteArticle 删除文章
-func DeleteArticle(id uint) (err error) {
+func (s *Service) DeleteArticle(id uint) (err error) {
 	var ArticleInfo models.Article
 	key := cache.GetKey(`DeleteArticle`, id)
 
@@ -111,19 +115,21 @@ func DeleteArticle(id uint) (err error) {
 }
 
 // ArticleTotal .
-func ArticleTotal(isAdmin bool, where []interface{}) (count uint, err error) {
+func (s *Service) ArticleTotal(isAdmin bool, where []interface{}) (count uint, err error) {
 	var cacheArticleInfo models.Article
 	key := cache.GetKey(`ArticleTotal`, where)
 
 	// 获取缓存
-	data, stat, err := cache.GetCacheData(key)
-	if err == nil && stat {
-		// 数据解析
-		count, err := strconv.Atoi(data)
-		if err == nil {
-			return uint(count), nil
+	if s.IsCache {
+		data, stat, err := cache.GetCacheData(key)
+		if err == nil && stat {
+			// 数据解析
+			count, err := strconv.Atoi(data)
+			if err == nil {
+				return uint(count), nil
+			}
+			logger.Warn("缓存数据有误,无法解析：", key, data)
 		}
-		logger.Warn("缓存数据有误,无法解析：", key, data)
 	}
 
 	// 查询数据
@@ -141,9 +147,9 @@ func ArticleTotal(isAdmin bool, where []interface{}) (count uint, err error) {
 }
 
 // isExistsArticle 是否存在文章
-func isExistsArticle(isAdmin bool, where ...interface{}) (IsExists bool, err error) {
+func (s *Service) isExistsArticle(isAdmin bool, where ...interface{}) (IsExists bool, err error) {
 	var count uint
-	count, err = ArticleTotal(isAdmin, where)
+	count, err = s.ArticleTotal(isAdmin, where)
 
 	if count > 0 {
 		IsExists = true
@@ -152,40 +158,42 @@ func isExistsArticle(isAdmin bool, where ...interface{}) (IsExists bool, err err
 }
 
 // IsExistsArticleByID 。
-func IsExistsArticleByID(isAdmin bool, id uint) (IsExists bool, err error) {
-	return isExistsArticle(isAdmin, "id = ?", id)
+func (s *Service) IsExistsArticleByID(isAdmin bool, id uint) (IsExists bool, err error) {
+	return s.isExistsArticle(isAdmin, "id = ?", id)
 }
 
 // IsExistsArticleByTitle 。
-func IsExistsArticleByTitle(isAdmin bool, title string) (IsExists bool, err error) {
-	return isExistsArticle(isAdmin, "title = ?", title)
+func (s *Service) IsExistsArticleByTitle(isAdmin bool, title string) (IsExists bool, err error) {
+	return s.isExistsArticle(isAdmin, "title = ?", title)
 }
 
 // UpdateArticle 。
-func UpdateArticle(article *models.Article, tag []string, subjectID uint) (err error) {
+func (s *Service) UpdateArticle(article *models.Article, tag []string, subjectID uint) (err error) {
 	return article.Update(tag, subjectID)
 }
 
 // CreateArticle .
-func CreateArticle(article *models.Article, tag []string, subjectID uint) (err error) {
+func (s *Service) CreateArticle(article *models.Article, tag []string, subjectID uint) (err error) {
 	return article.Create(tag, subjectID)
 }
 
 // GetArticleList .
-func GetArticleList(isAdmin bool, pageNum, pageSize uint, field []interface{}, order string, where []interface{}) (articleList []*models.Article, err error) {
+func (s *Service) GetArticleList(isAdmin bool, pageNum, pageSize uint, field []interface{}, order string, where []interface{}) (articleList []*models.Article, err error) {
 	group := cache.GetKey("")
 	key := cache.GetKey(append(where, `GetArticleList`, pageNum, pageSize)...)
 
 	// 获取缓存
-	data, stat, err := cache.GetCacheData(key)
-	if err == nil && stat {
-		// 数据解析
-		jsonData, err := helper.Debase64(data)
-		if err == nil {
-			json.Unmarshal(jsonData, &articleList)
-			return articleList, nil
+	if s.IsCache {
+		data, stat, err := cache.GetCacheData(key)
+		if err == nil && stat {
+			// 数据解析
+			jsonData, err := helper.Debase64(data)
+			if err == nil {
+				json.Unmarshal(jsonData, &articleList)
+				return articleList, nil
+			}
+			logger.Warn("缓存数据有误,无法解析：", group, key, data)
 		}
-		logger.Warn("缓存数据有误,无法解析：", group, key, data)
 	}
 
 	// 查询数据

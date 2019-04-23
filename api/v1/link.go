@@ -90,7 +90,7 @@ func CreateLink(c *gin.Context) {
 	}
 
 	// 友链是否存在
-	stat, err := service.IsExistsLinkByURI(request.URI)
+	stat, err := service.New(c).IsExistsLinkByURI(request.URI)
 	if _, isErr := api.IsServiceError(c, err); isErr {
 		return
 	}
@@ -106,7 +106,7 @@ func CreateLink(c *gin.Context) {
 		Nickname:  request.Nickname,
 		AvatarURI: request.AvatarURI,
 	}
-	err = service.CreateLink(link)
+	err = service.New(c).CreateLink(link)
 	if isErr, _ := api.IsServiceError(c, err); isErr {
 		return
 	}
@@ -132,7 +132,7 @@ func UpdateLink(c *gin.Context) {
 	}
 
 	// 友链是否存在
-	stat, err := service.IsExistsLinkByID(request.ID)
+	stat, err := service.New(c).IsExistsLinkByID(request.ID)
 	if _, isErr := api.IsServiceError(c, err); isErr {
 		return
 	}
@@ -149,7 +149,7 @@ func UpdateLink(c *gin.Context) {
 		Nickname:  request.Nickname,
 		AvatarURI: request.AvatarURI,
 	}
-	err = service.UpdateLink(link)
+	err = service.New(c).UpdateLink(link)
 	if isErr, _ := api.IsServiceError(c, err); isErr {
 		return
 	}
@@ -175,7 +175,7 @@ func DeleteLink(c *gin.Context) {
 	}
 
 	// do
-	err := service.DeleteLink(request.ID)
+	err := service.New(c).DeleteLink(request.ID)
 	if _, isErr := api.IsServiceError(c, err); isErr {
 		return
 	}
@@ -202,14 +202,14 @@ func LinkList(c *gin.Context) {
 	}
 
 	// 过滤
-	count, err := service.LinkTotal([]interface{}{})
+	count, err := service.New(c).LinkTotal([]interface{}{})
 	if _, isErr := api.IsServiceError(c, err); isErr {
 		return
 	}
 	var linkList []*models.Link
 	pageSize := conf.Get().Page.Link
 	if count > 0 {
-		linkList, err = service.GetLinkList(request.PageNum, pageSize)
+		linkList, err = service.New(c).GetLinkList(request.PageNum, pageSize)
 	}
 
 	response := map[string]interface{}{

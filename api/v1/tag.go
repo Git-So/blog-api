@@ -80,7 +80,7 @@ func CreateTag(c *gin.Context) {
 	}
 
 	// 标签是否存在
-	stat, err := service.IsExistsTagByName(request.Name)
+	stat, err := service.New(c).IsExistsTagByName(request.Name)
 	if _, isErr := api.IsServiceError(c, err); isErr {
 		return
 	}
@@ -93,7 +93,7 @@ func CreateTag(c *gin.Context) {
 	tag := &models.Tag{
 		Name: request.Name,
 	}
-	err = service.CreateTag(tag)
+	err = service.New(c).CreateTag(tag)
 	if isErr, _ := api.IsServiceError(c, err); isErr {
 		return
 	}
@@ -119,7 +119,7 @@ func DeleteTag(c *gin.Context) {
 	}
 
 	// 标签是否已使用
-	stat, err := service.IsExistsTagByTagName(request.Name)
+	stat, err := service.New(c).IsExistsTagByTagName(request.Name)
 	if _, isErr := api.IsServiceError(c, err); isErr {
 		return
 	}
@@ -129,7 +129,7 @@ func DeleteTag(c *gin.Context) {
 	}
 
 	// do
-	err = service.DeleteTagByName(request.Name)
+	err = service.New(c).DeleteTagByName(request.Name)
 	if _, isErr := api.IsServiceError(c, err); isErr {
 		return
 	}
@@ -169,14 +169,14 @@ func TagList(c *gin.Context) {
 		whereVal = append(whereVal, "%"+request.Search+"%")
 	}
 	where := append([]interface{}{whereKey}, whereVal...)
-	count, err := service.TagTotal(where)
+	count, err := service.New(c).TagTotal(where)
 	if _, isErr := api.IsServiceError(c, err); isErr {
 		return
 	}
 	var tagList []*models.Tag
 	pageSize := conf.Get().Page.Tag
 	if count > 0 {
-		tagList, err = service.GetTagList(request.PageNum, pageSize, where)
+		tagList, err = service.New(c).GetTagList(request.PageNum, pageSize, where)
 	}
 
 	response := map[string]interface{}{

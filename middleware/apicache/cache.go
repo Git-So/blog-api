@@ -36,6 +36,7 @@ func Cache() gin.HandlerFunc {
 		// 缓存
 		key := helper.Enbase64([]byte(c.Request.URL.String()))
 		stat, _ := cacheInstance.Exists(key)
+		logger.Debug("当前API缓存状态", cacheConf.APICacheStat)
 		if c.Request.Method == "GET" && cacheConf.APICacheStat && stat {
 			value, err := cacheInstance.Get(key)
 			if err == nil {

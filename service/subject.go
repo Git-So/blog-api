@@ -22,19 +22,21 @@ import (
 )
 
 // SubjectTotal .
-func SubjectTotal(where []interface{}) (count uint, err error) {
+func (s *Service) SubjectTotal(where []interface{}) (count uint, err error) {
 	var cacheSubject models.Subject
 	key := cache.GetKey(append(where, `SubjectTotal`)...)
 
 	// 获取缓存
-	data, stat, err := cache.GetCacheData(key)
-	if err == nil && stat {
-		// 数据解析
-		count, err := strconv.Atoi(data)
-		if err == nil {
-			return uint(count), nil
+	if s.IsCache {
+		data, stat, err := cache.GetCacheData(key)
+		if err == nil && stat {
+			// 数据解析
+			count, err := strconv.Atoi(data)
+			if err == nil {
+				return uint(count), nil
+			}
+			logger.Warn("缓存数据有误,无法解析：", key, data)
 		}
-		logger.Warn("缓存数据有误,无法解析：", key, data)
 	}
 
 	// 查询数据
@@ -52,9 +54,9 @@ func SubjectTotal(where []interface{}) (count uint, err error) {
 }
 
 // isExistsSubject 是否存在专题
-func isExistsSubject(where ...interface{}) (IsExists bool, err error) {
+func (s *Service) isExistsSubject(where ...interface{}) (IsExists bool, err error) {
 	var count uint
-	count, err = SubjectTotal(where)
+	count, err = s.SubjectTotal(where)
 
 	if count > 0 {
 		IsExists = true
@@ -63,22 +65,22 @@ func isExistsSubject(where ...interface{}) (IsExists bool, err error) {
 }
 
 // IsExistsSubjectByID 。
-func IsExistsSubjectByID(id uint) (IsExists bool, err error) {
-	return isExistsSubject("id = ?", id)
+func (s *Service) IsExistsSubjectByID(id uint) (IsExists bool, err error) {
+	return s.isExistsSubject("id = ?", id)
 }
 
 // IsExistsSubjectByTitle 。
-func IsExistsSubjectByTitle(title string) (IsExists bool, err error) {
-	return isExistsSubject("title = ?", title)
+func (s *Service) IsExistsSubjectByTitle(title string) (IsExists bool, err error) {
+	return s.isExistsSubject("title = ?", title)
 }
 
 // CreateSubject .
-func CreateSubject(subject *models.Subject) (err error) {
+func (s *Service) CreateSubject(subject *models.Subject) (err error) {
 	return subject.Create()
 }
 
 // DeleteSubject 删除专题
-func DeleteSubject(id uint) (err error) {
+func (s *Service) DeleteSubject(id uint) (err error) {
 	if id < 1 {
 		return
 	}
@@ -94,24 +96,26 @@ func DeleteSubject(id uint) (err error) {
 }
 
 // UpdateSubject 。
-func UpdateSubject(subject *models.Subject) (err error) {
+func (s *Service) UpdateSubject(subject *models.Subject) (err error) {
 	return subject.Update()
 }
 
 // GetSubjectList .
-func GetSubjectList(pageNum, pageSize uint, where []interface{}) (subjectList []*models.Subject, err error) {
+func (s *Service) GetSubjectList(pageNum, pageSize uint, where []interface{}) (subjectList []*models.Subject, err error) {
 	key := cache.GetKey(append(where, `GetSubjectList`, pageNum, pageSize)...)
 
 	// 获取缓存
-	data, stat, err := cache.GetCacheData(key)
-	if err == nil && stat {
-		// 数据解析
-		jsonData, err := helper.Debase64(data)
-		if err == nil {
-			json.Unmarshal(jsonData, &subjectList)
-			return subjectList, nil
+	if s.IsCache {
+		data, stat, err := cache.GetCacheData(key)
+		if err == nil && stat {
+			// 数据解析
+			jsonData, err := helper.Debase64(data)
+			if err == nil {
+				json.Unmarshal(jsonData, &subjectList)
+				return subjectList, nil
+			}
+			logger.Warn("缓存数据有误,无法解析：", key, data)
 		}
-		logger.Warn("缓存数据有误,无法解析：", key, data)
 	}
 
 	// 查询数据
@@ -132,28 +136,30 @@ func GetSubjectList(pageNum, pageSize uint, where []interface{}) (subjectList []
 }
 
 // GetSubjectInfoByID 通过文章序号获取专题信息
-func GetSubjectInfoByID(id uint, isAdmin bool) (*models.Subject, error) {
+func (s *Service) GetSubjectInfoByID(id uint, isAdmin bool) (*models.Subject, error) {
 	var cacheSubjectnfo models.Subject
 	key := cache.GetKey(`GetSubjectInfoByID`, id)
 
 	// 获取缓存
-	data, stat, err := cache.GetCacheData(key)
-	if err == nil && stat {
-		// 数据解析
-		jsonData, err := helper.Debase64(data)
-		if err == nil {
-			json.Unmarshal(jsonData, &cacheSubjectnfo)
-			if cacheSubjectnfo.State != 1 {
-				return nil, gorm.ErrRecordNotFound
+	if s.IsCache {
+		data, stat, err := cache.GetCacheData(key)
+		if err == nil && stat {
+			// 数据解析
+			jsonData, err := helper.Debase64(data)
+			if err == nil {
+				json.Unmarshal(jsonData, &cacheSubjectnfo)
+				if cacheSubjectnfo.State != 1 {
+					return nil, gorm.ErrRecordNotFound
+				}
+				return &cacheSubjectnfo, nil
 			}
-			return &cacheSubjectnfo, nil
+			logger.Warn("缓存数据有误,无法解析：", key, data)
 		}
-		logger.Warn("缓存数据有误,无法解析：", key, data)
 	}
 
 	// 查询数据
 	cacheSubjectnfo.ID = id
-	err = cacheSubjectnfo.Info(isAdmin)
+	err := cacheSubjectnfo.Info(isAdmin)
 	if isErrDB(err) {
 		return nil, err
 	}

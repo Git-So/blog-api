@@ -119,7 +119,7 @@ func CreateComment(c *gin.Context) {
 
 	// 父级评论ID
 	if request.ParentID > 0 {
-		stat, err := service.IsExistsCommentByID(isAdmin(c), request.ID)
+		stat, err := service.New(c).IsExistsCommentByID(isAdmin(c), request.ID)
 		if _, isErr := api.IsServiceError(c, err); isErr {
 			return
 		}
@@ -130,7 +130,7 @@ func CreateComment(c *gin.Context) {
 	}
 
 	// 文章是否存在
-	stat, err := service.IsExistsArticleByID(isAdmin(c), request.ArticleID)
+	stat, err := service.New(c).IsExistsArticleByID(isAdmin(c), request.ArticleID)
 	if _, isErr := api.IsServiceError(c, err); isErr {
 		return
 	}
@@ -149,7 +149,7 @@ func CreateComment(c *gin.Context) {
 		ReplyEmail:    request.ReplyEmail,
 		ReplyNickname: request.ReplyNickname,
 	}
-	err = service.CreateComment(comment)
+	err = service.New(c).CreateComment(comment)
 	if isErr, _ := api.IsServiceError(c, err); isErr {
 		return
 	}
@@ -176,7 +176,7 @@ func UpdateComment(c *gin.Context) {
 	}
 
 	// 评论是否存在
-	stat, err := service.IsExistsCommentByID(isAdmin(c), request.ID)
+	stat, err := service.New(c).IsExistsCommentByID(isAdmin(c), request.ID)
 	if _, isErr := api.IsServiceError(c, err); isErr {
 		return
 	}
@@ -187,7 +187,7 @@ func UpdateComment(c *gin.Context) {
 
 	// 父级评论ID
 	if request.ParentID > 0 {
-		stat, err := service.IsExistsCommentByID(isAdmin(c), request.ID)
+		stat, err := service.New(c).IsExistsCommentByID(isAdmin(c), request.ID)
 		if _, isErr := api.IsServiceError(c, err); isErr {
 			return
 		}
@@ -198,7 +198,7 @@ func UpdateComment(c *gin.Context) {
 	}
 
 	// 文章是否存在
-	stat, err = service.IsExistsArticleByID(isAdmin(c), request.ArticleID)
+	stat, err = service.New(c).IsExistsArticleByID(isAdmin(c), request.ArticleID)
 	if _, isErr := api.IsServiceError(c, err); isErr {
 		return
 	}
@@ -219,7 +219,7 @@ func UpdateComment(c *gin.Context) {
 		ReplyNickname: request.ReplyNickname,
 		State:         request.State,
 	}
-	err = service.UpdateComment(comment)
+	err = service.New(c).UpdateComment(comment)
 	if isErr, _ := api.IsServiceError(c, err); isErr {
 		return
 	}
@@ -247,7 +247,7 @@ func DeleteComment(c *gin.Context) {
 	}
 
 	// 删除评论
-	err := service.DeleteComment(request.ID)
+	err := service.New(c).DeleteComment(request.ID)
 	if isErr, _ := api.IsServiceError(c, err); isErr {
 		return
 	}
@@ -296,14 +296,14 @@ func CommentList(c *gin.Context) {
 	// }
 
 	where := append([]interface{}{whereKey}, whereVal...)
-	count, err := service.CommentTotal(isAdmin(c), where)
+	count, err := service.New(c).CommentTotal(isAdmin(c), where)
 	if _, isErr := api.IsServiceError(c, err); isErr {
 		return
 	}
 	var commentList []*models.Comment
 	pageSize := conf.Get().Page.Comment
 	if count > 0 {
-		commentList, err = service.GetCommentList(isAdmin(c), request.PageNum, pageSize, where)
+		commentList, err = service.New(c).GetCommentList(isAdmin(c), request.PageNum, pageSize, where)
 		for key, item := range commentList {
 			h := md5.New()
 			h.Write([]byte(item.Email))

@@ -30,12 +30,13 @@ type Article struct {
 	TagID       string     `json:"-"` // 冗余字段
 	CreatedAt   *time.Time `json:"CreatedAt,omitempty"`
 	UpdatedAt   *time.Time `json:"UpdatedAt,omitempty"`
-	Tags        []*Tag     `gorm:"many2many:TagMap" `
+	Tags        []*Tag     `gorm:"many2many:tag_map" `
+	Subject     *Subject   `gorm:"ForeignKey:SubjectID"`
 }
 
 // Info 文章详情
 func (art *Article) Info(isAdmin bool) error {
-	return db.Scopes(isAdminArticle(isAdmin)).Where(art).Preload("Tags").Last(&art).Error
+	return db.Scopes(isAdminArticle(isAdmin)).Where(art).Preload("Tags").Preload("Subject").Last(&art).Error
 }
 
 // HotList 热门文章

@@ -242,6 +242,7 @@ func CreateArticle(c *gin.Context) {
 		Content:     request.Content,
 		SubjectID:   request.SubjectID,
 	}
+	logger.Debug(request.SubjectID)
 	err = service.New(c).CreateArticle(article, request.Tags, request.SubjectID)
 	if isErr, _ := api.IsServiceError(c, err); isErr {
 		return

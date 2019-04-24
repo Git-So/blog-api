@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
+	"github.com/wonderivan/logger"
 )
 
 // Article 文章
@@ -26,7 +27,7 @@ type Article struct {
 	SubjectID   uint       `gorm:"default:0;index:article2subject" json:"SubjectID,omitempty"`
 	ViewNum     uint       `gorm:"default:0;not null"`
 	CommentNum  uint       `gorm:"default:0;not null"`
-	State       uint       `gorm:"default:0;not null;index:article_state" json:"State,omitempty"`
+	State       uint       `gorm:"default:1;not null;index:article_state" json:"State,omitempty"`
 	TagID       string     `json:"-"` // 冗余字段
 	CreatedAt   *time.Time `json:"CreatedAt,omitempty"`
 	UpdatedAt   *time.Time `json:"UpdatedAt,omitempty"`
@@ -63,7 +64,7 @@ func (art *Article) List(isAdmin bool, pageNum, pageSize uint, fields []interfac
 func isAdminArticle(isAdmin bool) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		if !isAdmin {
-			return db.Where("state = ?", 0)
+			return db.Where("state = ?", 1)
 		}
 		return db
 	}
@@ -72,7 +73,6 @@ func isAdminArticle(isAdmin bool) func(db *gorm.DB) *gorm.DB {
 // Create 添加文章
 func (art *Article) Create(tags []string, subjectID uint) (err error) {
 	tx := db.Begin()
-
 	if err = tx.Create(&art).Error; err != nil {
 		tx.Callback()
 		return err
@@ -86,7 +86,7 @@ func (art *Article) Create(tags []string, subjectID uint) (err error) {
 
 	// 专题
 	if subjectID > 0 {
-		if err = art.updateSubjectInfo(tx, subjectID); err != nil {
+		if err = art.updateSubjectInfo(tx, subjectID, true); err != nil {
 			tx.Callback()
 			return err
 		}
@@ -120,7 +120,7 @@ func (art *Article) Update(tags []string, subjectID uint) (err error) {
 	}
 
 	// 专题
-	if err = art.updateSubjectInfo(tx, subjectID); err != nil {
+	if err = art.updateSubjectInfo(tx, subjectID, false); err != nil {
 		tx.Callback()
 		return err
 	}
@@ -147,7 +147,7 @@ func (art *Article) Delete() (err error) {
 	}
 
 	// 专题
-	if err = art.updateSubjectInfo(tx, 0); err != nil {
+	if err = art.updateSubjectInfo(tx, 0, false); err != nil {
 		tx.Callback()
 		return err
 	}
@@ -209,13 +209,13 @@ func (art *Article) updateTagMap(tx *gorm.DB, tags []string) (err error) {
 }
 
 // updateSubjectInfo 更新文章专题信息
-func (art *Article) updateSubjectInfo(tx *gorm.DB, subjectID uint) (err error) {
-	if art.SubjectID == uint(subjectID) {
+func (art *Article) updateSubjectInfo(tx *gorm.DB, subjectID uint, isCreate bool) (err error) {
+	if art.SubjectID == uint(subjectID) && !isCreate {
 		return
 	}
 
 	// 去除原专题数据
-	if art.SubjectID > 0 {
+	if art.SubjectID > 0 && !isCreate {
 		var subject Subject
 		err = tx.Model(&subject).Where("id = ?", art.SubjectID).Updates(
 			map[string]interface{}{
@@ -229,7 +229,9 @@ func (art *Article) updateSubjectInfo(tx *gorm.DB, subjectID uint) (err error) {
 	}
 
 	// 添加专题数据
+	logger.Debug(subjectID)
 	if subjectID > 0 {
+		logger.Debug("添加专题数据")
 		var subject Subject
 		err = tx.Model(&subject).Where("id = ?", subjectID).Updates(
 			map[string]interface{}{

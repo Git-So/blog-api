@@ -18,7 +18,6 @@ import (
 
 	"github.com/Git-So/blog-api/models"
 	"github.com/Git-So/blog-api/utils/cache"
-	"github.com/jinzhu/gorm"
 	"github.com/wonderivan/logger"
 )
 
@@ -26,7 +25,7 @@ import (
 func (s *Service) GetArticleInfoByID(id uint, isAdmin bool) (*models.Article, error) {
 	var cacheArticleInfo models.Article
 	key := cache.GetKey(`GetArticleInfoByID`, id, isAdmin)
-
+	logger.Debug("isAdmin", isAdmin)
 	// 获取缓存
 	if s.IsCache {
 		data, stat, err := cache.GetCacheData(key)
@@ -35,9 +34,6 @@ func (s *Service) GetArticleInfoByID(id uint, isAdmin bool) (*models.Article, er
 			jsonData, err := helper.Debase64(data)
 			if err == nil {
 				json.Unmarshal(jsonData, &cacheArticleInfo)
-				if cacheArticleInfo.State != 1 && !isAdmin {
-					return nil, gorm.ErrRecordNotFound
-				}
 				return &cacheArticleInfo, nil
 			}
 			logger.Warn("缓存数据有误,无法解析：", key, data)
@@ -174,6 +170,7 @@ func (s *Service) UpdateArticle(article *models.Article, tag []string, subjectID
 
 // CreateArticle .
 func (s *Service) CreateArticle(article *models.Article, tag []string, subjectID uint) (err error) {
+	logger.Debug(subjectID)
 	return article.Create(tag, subjectID)
 }
 

@@ -1,8 +1,9 @@
 
 #build stage
 FROM golang:alpine AS builder
-WORKDIR /go/src/app
+WORKDIR /app
 COPY . .
+RUN export GO111MODULE=on
 RUN apk add --no-cache git
 RUN go get -d -v ./...
 RUN go install -v ./...

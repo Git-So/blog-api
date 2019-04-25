@@ -1,6 +1,10 @@
 APP_NAME=blog-api
 RELEASE=v1
 APP_PATH=release/${RELEASE}/
+Dockerfile=Dockerfile
+ifeq ($(DEV_MODE),true)
+Dockerfile=Dockerfile-local
+endif
 
 build:
 	make clear
@@ -17,8 +21,7 @@ run:
 
 docker:
 	make build
-	docker build --rm -f "Dockerfile"  -t ${APP_NAME}:latest .
+	docker build --rm -f "${Dockerfile}"  -t ${APP_NAME}:latest .
 	docker stop blog-api
 	docker rm blog-api
 	docker run -d --restart=always --name blog-api --network app --ip 172.18.0.16 -v /home/so/Documents/conf/blog-api:/.blog blog-api
-	

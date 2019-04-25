@@ -5,4 +5,4 @@ services:
     image: blog-api
     build: .
     ports:
-      - 8099:8099
+      - :

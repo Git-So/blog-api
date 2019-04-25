@@ -5,7 +5,7 @@ WORKDIR /app
 COPY . .
 RUN export GO111MODULE=on
 RUN apk add --no-cache git
-RUN go get -d -v ./...
+RUN go mod tidy
 RUN go install -v ./...
 
 #final stage

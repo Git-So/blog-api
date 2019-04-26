@@ -34,25 +34,20 @@ var (
 // Cache 缓存接口
 type Cache interface {
 	Connect()
-	Set(key, value interface{}) error
-	SetNx(key, value interface{}) error
-	SetEx(key, seconds, value interface{}) error
-	Get(key interface{}) (string, error)
-	Del(key interface{}) (bool, error)
-	Exists(key interface{}) (bool, error)
-	Expire(key, expire interface{}) error
-	Persist(key interface{}) error
+	Set(key string, value interface{}) error
+	SetNx(key string, value interface{}) error
+	SetEx(key string, seconds, value interface{}) error
+	Get(key string) (string, error)
+	Del(key string) (bool, error)
+	Exists(key string) (bool, error)
+	Expire(key string, seconds interface{}) error
+	Persist(key string) error
 }
 
 // Get 获取缓存实例
 func Get() Cache {
+	logger.Debug("2222222")
 	return *cacheInterface
-}
-
-// 新建缓存实例
-func new(cache Cache) *Cache {
-	cacheInterface = &cache
-	return cacheInterface
 }
 
 // SetCacheType 设置缓存类型
@@ -69,16 +64,15 @@ func GetKey(args ...interface{}) string {
 
 // New 获取缓存实例
 func New() Cache {
-	switch CacheType {
-	case Redis:
-		redisCache := &redisCache{}
-		new(redisCache)
-	}
-	return *cacheInterface
+	var redisCache Cache = &redis{}
+	cacheInterface = &redisCache
+	logger.Debug("12121")
+	return redisCache
 }
 
 // GetCacheData 获取缓存数据快捷函数
-func GetCacheData(key interface{}) (string, bool, error) {
+func GetCacheData(index interface{}) (string, bool, error) {
+	key := fmt.Sprintf("%v", index)
 	// 是否存在
 	stat, err := Get().Exists(key)
 	if err != nil {

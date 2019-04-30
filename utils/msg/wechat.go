@@ -189,7 +189,7 @@ func (we *wechat) getAccessToken() (stat bool) {
 	}
 
 	// 缓存 accessToken 时间少30s 防止网络请求浪费时间
-	err = cache.Get().SetEx(key, token.ExpiresIn-30, token.AccessToken)
+	err = cache.Get().SetEx(key, int64(token.ExpiresIn-30), token.AccessToken)
 	if err != nil {
 		logger.Error("保存 accessToken 失败")
 		return

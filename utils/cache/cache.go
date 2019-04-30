@@ -36,11 +36,11 @@ type Cache interface {
 	Connect()
 	Set(key string, value interface{}) error
 	SetNx(key string, value interface{}) error
-	SetEx(key string, seconds, value interface{}) error
+	SetEx(key string, seconds int64, value interface{}) error
 	Get(key string) (string, error)
 	Del(key string) (bool, error)
 	Exists(key string) (bool, error)
-	Expire(key string, seconds interface{}) error
+	Expire(key string, seconds int64) error
 	Persist(key string) error
 }
 

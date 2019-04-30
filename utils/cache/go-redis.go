@@ -69,8 +69,7 @@ func (r *redis) SetNx(key string, value interface{}) (err error) {
 }
 
 // SetEx 缓存设置并且设置过期时间
-func (r *redis) SetEx(key string, seconds, value interface{}) (err error) {
-	expire := seconds.(int)
+func (r *redis) SetEx(key string, expire int64, value interface{}) (err error) {
 	err = redisConn.Set(key, value, time.Duration(expire)*time.Second).Err()
 	if err != nil {
 		logger.Error("redis SetEx:", err)
@@ -108,12 +107,14 @@ func (r *redis) Exists(key string) (stat bool, err error) {
 		logger.Error("redis Exists:", err)
 		return
 	}
+	if result != 0 {
+		stat = true
+	}
 	return
 }
 
 // Expire 设置过期时间
-func (r *redis) Expire(key string, seconds interface{}) (err error) {
-	expire := seconds.(int)
+func (r *redis) Expire(key string, expire int64) (err error) {
 	err = redisConn.Expire(key, time.Duration(expire)*time.Second).Err()
 	if err != nil {
 		logger.Error("redis Expire:", err)

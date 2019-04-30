@@ -18,7 +18,6 @@ require (
 	github.com/go-redis/redis v6.15.2+incompatible
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/protobuf v1.3.1 // indirect
-	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/gookit/validate v1.0.2
 	github.com/jinzhu/gorm v1.9.4
 	github.com/jinzhu/now v1.0.0 // indirect

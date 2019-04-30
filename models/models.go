@@ -59,7 +59,7 @@ func getSource() (source string) {
 		// 没有写
 		return
 	case "mysql":
-		return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local",
+		return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=True&loc=Local",
 			conf.Get().Database.User,
 			conf.Get().Database.Passwd,
 			conf.Get().Database.Host,

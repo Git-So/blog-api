@@ -21,6 +21,8 @@ func Test_redis(t *testing.T) {
 	convey.Convey("redis:", t, func() {
 		obj := cache.New()
 		obj.Connect()
+		cache.Get().Exists("Name")
+		cache.Get().Set("Name", "123")
 		cache.Get().Set("Name", "123")
 	})
 }
